@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morse Trainer Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light">
+    <!-- CONNECTION STATUS -->
+    <div class="connection-status" id="connectionStatus">
+        <span class="status-dot"></span>
+        <span class="status-text">Connexion...</span>
+    </div>
+
+    <div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <h2>📻 Channels</h2>
+            <div class="channels-list" id="channelsList"></div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+            <!-- HEADER -->
+            <header class="header">
+                <h1>⚡ MORSE PRO ⚡</h1>
+                <div class="header-right">
+                    <div class="callsign-badge" id="myCallsignBadge">HAM-000</div>
+                    <div class="channel-indicator" id="channelIndicator">🏠 Lobby</div>
+                    <div class="users-badge" id="usersBadge" title="Utilisateurs présents">👤 0</div>
+                    <div class="mode-indicator" id="modeIndicator">🎹 A</div>
+                    <div class="invert-indicator" id="invertIndicator">🔄</div>
+                    <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT -->
+            <div class="main-content">
+                <!-- SETTINGS PANEL -->
+                <div class="settings-panel" id="settingsPanel">
+                    <h2>⚙️ Paramètres</h2>
+                    
+                    <!-- Identité -->
+                    <div class="settings-section">
+                        <h3>👤 Identité</h3>
+                        <div class="setting-group">
+                            <label>Indicatif personnel:</label>
+                            <input type="text" class="callsign-input" id="callsignInput" 
+                                   placeholder="Ex: F4ABC, ON3XYZ..." maxlength="10">
+                            <button onclick="saveCallsign()" class="save-btn">💾</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sliders -->
+                    <div class="settings-grid">
+                        <div class="setting-group">
+                            <label>WPM: <span class="value-display" id="wpmDisplay">20</span></label>
+                            <input type="range" id="wpmSlider" min="5" max="40" value="20">
+                        </div>
+                        <div class="setting-group">
+                            <label>Tonalité: <span class="value-display" id="toneDisplay">600</span>Hz</label>
+                            <input type="range" id="toneSlider" min="400" max="1000" step="50" value="600">
+                        </div>
+                        <div class="setting-group">
+                            <label>Volume: <span class="value-display" id="volumeDisplay">50</span>%</label>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                        </div>
+                        <div class="setting-group">
+                            <label>Pause ligne: <span class="value-display" id="newlineDelayDisplay">4</span>s</label>
+                            <input type="range" id="newlineDelaySlider" min="2" max="10" value="4">
+                        </div>
+                    </div>
+
+                    <!-- Affichage Chat -->
+                    <div class="settings-section">
+                        <h3>💬 Affichage Chat</h3>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="showMorseCheckbox" checked onchange="updateShowMorse()">
+                            <span class="checkmark"></span>
+                            Afficher le code morse (• —)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="playOthersAudioCheckbox" checked onchange="updatePlayOthersAudio()">
+                            <span class="checkmark"></span>
+                            Jouer le son des autres utilisateurs
+                        </label>
+                    </div>
+
+                    <!-- Timing Info -->
+                    <div class="timing-info">
+                        <h4>⏱️ Timing à <span id="timingWpm">20</span> WPM</h4>
+                        DIT: <span id="timingDit">60</span>ms | DAH: <span id="timingDah">180</span>ms
+                    </div>
+
+                    <!-- Mode -->
+                    <div class="settings-section">
+                        <h3>🎹 Mode</h3>
+                        <div class="mode-buttons">
+                            <button class="mode-btn active" onclick="setKeyMode('iambicA')" id="modeIambicABtn">Iambic A</button>
+                            <button class="mode-btn" onclick="setKeyMode('iambicB')" id="modeIambicBBtn">Iambic B</button>
+                            <button class="mode-btn" onclick="setKeyMode('straight')" id="modeStraightBtn">Pioche</button>
+                        </div>
+                        <div class="mode-description" id="modeDescription">Gauche=• | Droit=—</div>
+                    </div>
+
+                    <!-- Inverser -->
+                    <div class="settings-section">
+                        <h3>🔄 Inverser</h3>
+                        <div class="toggle-container">
+                            <div class="toggle-switch" id="invertToggle" onclick="toggleInvert()">
+                                <div class="toggle-slider"></div>
+                            </div>
+                            <span class="toggle-label" id="invertDescription">Normal</span>
+                        </div>
+                    </div>
+
+                    <!-- Thème -->
+                    <div class="settings-section">
+                        <h3>🎨 Thème</h3>
+                        <div class="theme-buttons">
+                            <button class="theme-btn active" onclick="setTheme('light')" id="themeLightBtn">☀️</button>
+                            <button class="theme-btn" onclick="setTheme('dark')" id="themeDarkBtn">🌙</button>
+                            <button class="theme-btn" onclick="setTheme('retro')" id="themeRetroBtn">🎮</button>
+                        </div>
+                    </div>
+
+                    <!-- Channels Privés -->
+                    <div class="settings-section private-channels-section">
+                        <h3>🔒 Créer Channel Privé</h3>
+                        <div class="private-channel-creator">
+                            <input type="text" class="private-channel-input" id="newChannelName" 
+                                   placeholder="Nom..." maxlength="12">
+                            <button onclick="createPrivateChannel()">➕</button>
+                        </div>
+                    </div>
+
+                    <!-- Connexion -->
+                    <div class="settings-section">
+                        <h3>🌐 Connexion</h3>
+                        <div class="connection-info" id="connectionInfo">
+                            <p>Status: <span id="connStatusText">Déconnecté</span></p>
+                            <p>ID: <span id="connIdText">-</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOBBY VIEW -->
+                <div id="lobbyView">
+                    <div class="lobby-message">
+                        <h2>🏠 Lobby</h2>
+                        <p>Morse <strong>désactivé</strong> ici</p>
+                        <div class="hint">
+                            🎯 Practice • 📡 Channels • 🔒 Privés (⚙️)
+                        </div>
+                        <div class="online-users" id="lobbyOnlineUsers">
+                            <h3>👥 Utilisateurs en ligne</h3>
+                            <div id="onlineUsersList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRACTICE VIEW -->
+                <div id="practiceView" class="hidden">
+                    <div class="morse-display">
+                        <div><strong>📝 Exercice:</strong></div>
+                        <div id="morseCode" class="received">---</div>
+                        <div class="text">Texte: <span id="decodedText" class="slashed-zero">---</span></div>
+                    </div>
+
+                    <div class="input-zone practice-input-zone">
+                        <h3 id="practiceInputLabel">✍️ Réponse</h3>
+                        <div class="practice-morse-input" id="practiceUserMorse"></div>
+                        <div class="decoded-line">Décodé: <span id="practiceUserDecoded" class="slashed-zero"></span></div>
+                        <div class="key-indicator" id="practiceKeyIndicator"></div>
+                    </div>
+
+                    <div class="controls">
+                        <button onclick="startTraining()">▶️</button>
+                        <button onclick="stopTraining()">⏹️</button>
+                        <button onclick="playNext()">⏭️</button>
+                        <button onclick="repeatCurrent()">🔄</button>
+                        <button onclick="clearPracticeInput()">🗑️</button>
+                    </div>
+
+                    <div class="stats">
+                        Score: <span id="score">0</span> | 
+                        ✓<span id="correct">0</span> | 
+                        ✗<span id="errors">0</span> | 
+                        <span id="accuracy">100%</span>
+                    </div>
+                </div>
+
+                <!-- CHAT VIEW -->
+                <div id="channelView" class="hidden">
+                    <!-- Channel Users Bar -->
+                    <div class="channel-users-bar" id="channelUsersBar">
+                        <span class="users-label">👥 Dans ce channel:</span>
+                        <div class="users-list" id="channelUsersList"></div>
+                    </div>
+
+                    <div class="chat-zone" id="chatZone">
+                        <div class="chat-empty" id="chatEmpty">💬 Tapez en morse...</div>
+                    </div>
+
+                    <!-- Other users typing -->
+                    <div class="others-typing" id="othersTyping"></div>
+
+                    <div class="input-zone">
+                        <div class="typing-status">
+                            <span class="typing-indicator" id="typingIndicator">En attente...</span>
+                        </div>
+                        <div class="current-morse" id="currentMorseDisplay"></div>
+                        <div class="key-indicator" id="channelKeyIndicator"></div>
+                    </div>
+
+                    <div class="status-bar">
+                        <span>💡 Pause <span id="pauseDelayDisplay">4</span>s = nouvelle ligne</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
