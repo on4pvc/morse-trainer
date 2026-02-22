@@ -5,8 +5,7 @@ WORKDIR /app
 # Copy package files
 COPY server/package*.json ./
 
-# Install dependencies
-RUN npm ci
+
 
 # Copy server code
 COPY server/ ./
